@@ -5,7 +5,7 @@ import dotenv from "dotenv"
 dotenv.config()
 
 const API_KEY = process.env.IPDATA_KEY // ahora usas la clave de ipdata
-const DAILY_LIMIT = 500 // peticiones que quieres hacer hoy
+const DAILY_LIMIT = 1000 //400,500 peticiones que quieres hacer hoy
 const COOLDOWN = 1 * 2000 // si quieres, un pequeño delay entre peticiones
 
 async function loadJSON(path, fallback) {
