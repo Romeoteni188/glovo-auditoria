@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react"
 import {
+    ResponsiveContainer,
     ScatterChart,
     Scatter,
     CartesianGrid,
@@ -117,104 +118,125 @@ export default function Dashboard({ data }) {
 
             <div className="flex flex-wrap gap-6 justify-center items-center">
                 {/* BARCHART */}
-                <div className="bg-gray-900 p-6 rounded-xl shadow-lg">
-                    <h2 className="text-xl mb-4 font-bold">Ataques por País</h2>
-                    <div className="w-full overflow-x-auto">
-                        <BarChart width={800} height={300} data={countryData}>
-                            <XAxis dataKey="country" />
-                            <YAxis />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: "#1f2937",
-                                    border: "none",
-                                }}
-                                labelStyle={{ color: "#ffffff" }}
-                                itemStyle={{ color: "#ffffff" }}
-                            />
-                            <Bar dataKey="count">
-                                {countryData.map((entry, index) => (
-                                    <Cell
-                                        key={`cell-${index}`}
-                                        fill={COLORS[index % COLORS.length]}
-                                    />
-                                ))}
-                            </Bar>
-                        </BarChart>
+                <div className="bg-gray-900 p-6 rounded-xl shadow-lg w-full">
+                    <h2 className="text-xl mb-4 font-bold text-white">
+                        Ataques por País
+                    </h2>
+                    <div style={{ width: "100%", height: 300 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={countryData}>
+                                <XAxis
+                                    dataKey="country"
+                                    tick={{ fill: "#fff" }}
+                                />
+                                <YAxis tick={{ fill: "#fff" }} />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: "#1f2937",
+                                        border: "none",
+                                    }}
+                                    labelStyle={{ color: "#ffffff" }}
+                                    itemStyle={{ color: "#ffffff" }}
+                                />
+                                <Bar dataKey="count">
+                                    {countryData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
-
                 {/* PIE CHART */}
-                <div className="bg-gray-900 p-6 rounded-xl shadow-lg">
-                    <h2 className="text-xl mb-4 font-bold">
+                <div className="bg-gray-900 p-6 rounded-xl shadow-lg w-full">
+                    <h2 className="text-xl mb-4 font-bold text-white">
                         Top 5 países más agresivos
                     </h2>
-                    <div className="w-full overflow-x-auto">
-                        <PieChart width={800} height={300}>
-                            <Pie
-                                data={countryData
-                                    .sort((a, b) => b.count - a.count)
-                                    .slice(0, 5)}
-                                dataKey="count"
-                                nameKey="country"
-                                outerRadius={120}>
-                                {[...Array(5)].map((_, i) => (
-                                    <Cell
-                                        key={`slice-${i}`}
-                                        fill={COLORS[i % COLORS.length]}
-                                    />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                        </PieChart>
+                    <div style={{ width: "100%", height: 300 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={countryData
+                                        .sort((a, b) => b.count - a.count)
+                                        .slice(0, 5)}
+                                    dataKey="count"
+                                    nameKey="country"
+                                    outerRadius={120}>
+                                    {[...Array(5)].map((_, i) => (
+                                        <Cell
+                                            key={`slice-${i}`}
+                                            fill={COLORS[i % COLORS.length]}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                            </PieChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
-
                 {/* SCATTER MAP LAT/LON */}
-                <div className="bg-gray-900 p-6 rounded-xl shadow-lg">
+                <div className="bg-gray-900 p-6 rounded-xl shadow-lg w-full">
                     <h2 className="text-xl mb-4 font-bold text-white">
                         Distribución geográfica de IPs
                     </h2>
-                    <ScatterChart
-                        width={800}
-                        height={400}
-                        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                        <CartesianGrid stroke="#555" strokeDasharray="3 3" />
-                        <XAxis
-                            type="number"
-                            dataKey="longitude"
-                            name="Longitude"
-                            domain={[-180, 180]}
-                            tick={{ fill: "#fff" }}
-                            label={{
-                                value: "Longitude",
-                                fill: "#fff",
-                                position: "insideBottomRight",
-                            }}
-                        />
-                        <YAxis
-                            type="number"
-                            dataKey="latitude"
-                            name="Latitude"
-                            domain={[-90, 90]}
-                            tick={{ fill: "#fff" }}
-                            label={{
-                                value: "Latitude",
-                                fill: "#fff",
-                                angle: -90,
-                                position: "insideLeft",
-                            }}
-                        />
-                        <ZAxis
-                            type="number"
-                            dataKey="count"
-                            range={[50, 400]}
-                        />
-                        <Tooltip
-                            content={<CustomTooltip />}
-                            cursor={{ strokeDasharray: "3 3" }}
-                        />
-                        <Scatter name="IPs" data={points} fill="#ef4444" />
-                    </ScatterChart>
+                    <div style={{ width: "100%", height: 400 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart
+                                margin={{
+                                    top: 20,
+                                    right: 20,
+                                    bottom: 20,
+                                    left: 20,
+                                }}>
+                                <CartesianGrid
+                                    stroke="#555"
+                                    strokeDasharray="3 3"
+                                />
+                                <XAxis
+                                    type="number"
+                                    dataKey="longitude"
+                                    name="Longitude"
+                                    domain={[-180, 180]}
+                                    tick={{ fill: "#fff" }}
+                                    label={{
+                                        value: "Longitude",
+                                        fill: "#fff",
+                                        position: "insideBottomRight",
+                                    }}
+                                />
+                                <YAxis
+                                    type="number"
+                                    dataKey="latitude"
+                                    name="Latitude"
+                                    domain={[-90, 90]}
+                                    tick={{ fill: "#fff" }}
+                                    label={{
+                                        value: "Latitude",
+                                        fill: "#fff",
+                                        angle: -90,
+                                        position: "insideLeft",
+                                    }}
+                                />
+                                <ZAxis
+                                    type="number"
+                                    dataKey="count"
+                                    range={[50, 400]}
+                                />
+                                <Tooltip
+                                    content={<CustomTooltip />}
+                                    cursor={{ strokeDasharray: "3 3" }}
+                                />
+                                <Scatter
+                                    name="IPs"
+                                    data={points}
+                                    fill="#ef4444"
+                                />
+                            </ScatterChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
         </div>
