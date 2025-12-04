@@ -4,9 +4,9 @@ import dotenv from "dotenv"
 
 dotenv.config()
 
-const API_KEY = process.env.IPDATA_KEY // ahora usas la clave de ipdata
-const DAILY_LIMIT = 1000 //400,500 peticiones que quieres hacer hoy
-const COOLDOWN = 1 * 2000 // si quieres, un pequeño delay entre peticiones
+const API_KEY = process.env.IPDATA_KEY
+const DAILY_LIMIT = 1000
+const COOLDOWN = 2000 // 2 segundos opcional
 
 async function loadJSON(path, fallback) {
     try {
@@ -24,12 +24,11 @@ async function main() {
 
     console.log("🔍 Total IPs en lista:", ips.length)
 
+    // Carga resultados existentes (pero NO se usarán para saltar)
     const existing = await loadJSON("ipdata_results.json", [])
-    const processedIPs = new Set(existing.map((r) => r.ip))
+    let results = [...existing]
 
-    console.log("📁 Ya procesadas:", processedIPs.size)
-
-    // Progreso diario
+    // Carga progreso diario
     const progress = await loadJSON("progress_ipdata.json", {
         lastIndex: 0,
         date: new Date().toISOString().slice(0, 10),
@@ -38,13 +37,14 @@ async function main() {
 
     const today = new Date().toISOString().slice(0, 10)
     if (progress.date !== today) {
-        progress.lastIndex = 0
+        // Nuevo día => reinicio solo los contadores diarios
+        progress.lastIndex = progress.lastIndex
         progress.requestsToday = 0
         progress.date = today
-        console.log(`🗓 Nuevo día (${today}), reiniciando progreso.`)
+        console.log(`🗓 Nuevo día (${today}), reiniciando solo requestsToday.`)
     }
 
-    let results = [...existing]
+    console.log("📌 Comenzando desde índice:", progress.lastIndex)
 
     for (let i = progress.lastIndex; i < ips.length; i++) {
         if (progress.requestsToday >= DAILY_LIMIT) {
@@ -55,31 +55,33 @@ async function main() {
         }
 
         const ip = ips[i]
-        if (processedIPs.has(ip)) {
-            console.log("⏩ Saltando (ya existe):", ip)
-        } else {
-            console.log("➡️ Consultando ipdata:", ip)
-            const res = await fetch(
-                `https://api.ipdata.co/${ip}?api-key=${API_KEY}`,
-            )
-            if (res.status === 429) {
-                console.log("⛔ Límite ipdata alcanzado (429), deteniendo.")
-                break // terminar si ipdata te bloquea
-            }
 
-            const json = await res.json()
-            results.push(json)
-            processedIPs.add(ip)
-            console.log("   ✔ Guardado:", ip)
+        console.log("➡️ Consultando ipdata:", ip)
 
-            // guardar resultados progresivos
-            await fs.writeFile(
-                "ipdata_results.json",
-                JSON.stringify(results, null, 2),
-            )
+        const res = await fetch(
+            `https://api.ipdata.co/${ip}?api-key=${API_KEY}`,
+        )
+
+        if (res.status === 429) {
+            console.log("⛔ Límite ipdata alcanzado (429), deteniendo.")
+            break
         }
 
-        // actualizar progreso
+        const json = await res.json()
+
+        // Forzar que la IP quede siempre guardada
+        json.ip = ip
+        results.push(json)
+
+        console.log("   ✔ Guardado:", ip)
+
+        // Guardar resultados
+        await fs.writeFile(
+            "ipdata_results.json",
+            JSON.stringify(results, null, 2),
+        )
+
+        // Actualizar progreso
         progress.lastIndex = i + 1
         progress.requestsToday += 1
         await fs.writeFile(
@@ -87,7 +89,7 @@ async function main() {
             JSON.stringify(progress, null, 2),
         )
 
-        // opcional cooldown entre peticiones
+        // opcional: cooldown
         await new Promise((r) => setTimeout(r, COOLDOWN))
     }
 
